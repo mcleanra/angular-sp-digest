@@ -1,0 +1,22 @@
+{
+  "name": "angular-sp-digest",
+  "description": "An AngularJS module that keeps the Sharepoint 2013 RequestDigest refreshed",
+  "main": [
+    "dist/angular-sp-digest.js"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "authors": [
+    "Ryan McLean"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/mcleanra/angular-sp-digest",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
