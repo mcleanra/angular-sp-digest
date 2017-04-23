@@ -15,15 +15,23 @@
 				// 1440000 is every 24 minutes (the sp default)
 				var _interval = _spFormDigestRefreshInterval || 1440000;
 				
+				var _site = "";
+
 				function refresh() {
-					RequestDigestService.getRequestDigest()
+
+					window.__REQUESTDIGEST = window.__REQUESTDIGEST || {};
+
+					RequestDigestService.getRequestDigest(_site)
 						.then(function(digest){
-							$("#__REQUESTDIGEST").val(digest);
+							window.__REQUESTDIGEST[_site] = digest;
 						});
 				}
 
 				//keeps the form digest refreshed across the app
-				function _startInterval() {
+				function _startInterval(site) {
+
+					_site = site;
+
 					$interval( function() {
 						refresh();
 					}, _interval);
@@ -45,10 +53,10 @@
 	app.factory('RequestDigestService', ['$http', '$q', function ($http, $q) {
 
 				//gets a new form digest asynchronously using REST
-				function _getRequestDigest() {
+				function _getRequestDigest(site) {
 
 					return $http({
-						url: _spPageContextInfo.siteAbsoluteUrl + '/_api/contextinfo',
+						url: site + '/_api/contextinfo',
 						method: 'POST',
 						data: '',
 						headers: {
@@ -61,14 +69,8 @@
 					});
 				}
 
-				//updates the form digest synchronously using the built-in SP functions (only when needed, by checking against the interval).  requires init.js
-				function _updateFormDigest() {
-					UpdateFormDigest(_spPageContextInfo.webServerRelativeUrl, _spFormDigestRefreshInterval);
-				}
-
 				return {
-					getRequestDigest: _getRequestDigest,
-					updateFormDigest: _updateFormDigest
+					getRequestDigest: _getRequestDigest
 				};
 
 			}

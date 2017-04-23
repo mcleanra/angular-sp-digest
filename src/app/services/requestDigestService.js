@@ -5,10 +5,10 @@
 	app.factory('RequestDigestService', ['$http', '$q', function ($http, $q) {
 
 				//gets a new form digest asynchronously using REST
-				function _getRequestDigest() {
+				function _getRequestDigest(site) {
 
 					return $http({
-						url: _spPageContextInfo.siteAbsoluteUrl + '/_api/contextinfo',
+						url: site + '/_api/contextinfo',
 						method: 'POST',
 						data: '',
 						headers: {
@@ -21,14 +21,8 @@
 					});
 				}
 
-				//updates the form digest synchronously using the built-in SP functions (only when needed, by checking against the interval).  requires init.js
-				function _updateFormDigest() {
-					UpdateFormDigest(_spPageContextInfo.webServerRelativeUrl, _spFormDigestRefreshInterval);
-				}
-
 				return {
-					getRequestDigest: _getRequestDigest,
-					updateFormDigest: _updateFormDigest
+					getRequestDigest: _getRequestDigest
 				};
 
 			}
