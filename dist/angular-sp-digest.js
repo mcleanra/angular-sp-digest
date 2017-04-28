@@ -7,73 +7,106 @@
 })(angular);
 
 (function (angular) {
-	
+
 	var app = angular.module('angular.sp.digest');
-	
-	app.factory('RequestDigestIntervalService', ['$interval', 'RequestDigestService', function ($interval, RequestDigestService) {
-				
-				// 1440000 is every 24 minutes (the sp default)
-				var _interval = _spFormDigestRefreshInterval || 1440000;
-				
-				var _site = "";
 
-				function refresh() {
+	app.service('RequestDigestCacheService', [
+		function () {
 
-					window.__REQUESTDIGEST = window.__REQUESTDIGEST || {};
+			var _digest = {};
 
-					RequestDigestService.getRequestDigest(_site)
-						.then(function(digest){
-							window.__REQUESTDIGEST[_site] = digest;
-						});
-				}
-
-				//keeps the form digest refreshed across the app
-				function _startInterval(site) {
-
-					_site = site;
-
-					$interval( function() {
-						refresh();
-					}, _interval);
-				}
-				
-				refresh();
-
-				return {
-					startInterval: _startInterval
-				};
+			function _get(site) {
+				return _digest[site];
 			}
-		]);
+
+			function _set(site, digest) {
+				_digest[site] = digest;
+			}
+
+			return {
+				get: _get,
+				set: _set
+			}
+		}
+	]);
+
 })(angular);
 
 (function (angular) {
-	
+
 	var app = angular.module('angular.sp.digest');
 
-	app.factory('RequestDigestService', ['$http', '$q', function ($http, $q) {
+	app.service('RequestDigestIntervalService', ['$interval', 'RequestDigestService',
+		function ($interval, RequestDigestService) {
 
-				//gets a new form digest asynchronously using REST
-				function _getRequestDigest(site) {
+			// 1440000 is every 24 minutes (the sp default)
+			var _interval = _spFormDigestRefreshInterval || 1440000;
+			var _workers = {};
 
-					return $http({
-						url: site + '/_api/contextinfo',
-						method: 'POST',
-						data: '',
-						headers: {
-							"Accept": "application/json; odata=verbose",
-							"Content-Type": "application/json; odata=verbose"
-						}
-					})
-					.then(function (response) {
-						return response.data.d.GetContextWebInformation.FormDigestValue;
-					});
-				}
-
-				return {
-					getRequestDigest: _getRequestDigest
-				};
-
+			function _setRefreshInterval(interval) {
+				_interval = interval;
 			}
-		]);
+
+			//starts a new interval for this site
+			function _start(site) {
+				if (!_workers[site]) {
+					
+					//get and cache one right now
+					RequestDigestService.get(site);
+
+					//start the interval
+					_workers[site] = $interval(function () {
+						RequestDigestService.get(site);
+					}, _interval);
+				}
+			}
+
+			//stops getting a digest for a site
+			function _stop(site) {
+				if( _workers[site] ) {
+					$interval.cancel(_workers[site]);
+				}
+			}
+
+			return {
+				setRefreshInterval: _setRefreshInterval,
+				start: _start,
+				stop: _stop
+			};
+		}
+	]);
+})(angular);
+
+(function (angular) {
+
+	var app = angular.module('angular.sp.digest');
+
+	app.service('RequestDigestService', ['$http', 'RequestDigestCacheService',
+		function ($http, RequestDigestCacheService) {
+
+			//gets a new form digest asynchronously using REST
+			function _get(site) {
+
+				return $http({
+					url: site + '/_api/contextinfo',
+					method: 'POST',
+					data: '',
+					headers: {
+						"Accept": "application/json; odata=verbose",
+						"Content-Type": "application/json; odata=verbose"
+					}
+				})
+					.then(function (response) {
+						var digest = response.data.d.GetContextWebInformation.FormDigestValue;
+						RequestDigestCacheService.set(site, digest);
+						return digest;
+					});
+			}
+
+			return {
+				get: _get
+			};
+		}
+	]);
 
 })(angular);

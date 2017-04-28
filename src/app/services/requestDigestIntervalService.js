@@ -1,39 +1,44 @@
 (function (angular) {
-	
+
 	var app = angular.module('angular.sp.digest');
-	
-	app.factory('RequestDigestIntervalService', ['$interval', 'RequestDigestService', function ($interval, RequestDigestService) {
-				
-				// 1440000 is every 24 minutes (the sp default)
-				var _interval = _spFormDigestRefreshInterval || 1440000;
-				
-				var _site = "";
 
-				function refresh() {
+	app.service('RequestDigestIntervalService', ['$interval', 'RequestDigestService',
+		function ($interval, RequestDigestService) {
 
-					window.__REQUESTDIGEST = window.__REQUESTDIGEST || {};
+			// 1440000 is every 24 minutes (the sp default)
+			var _interval = _spFormDigestRefreshInterval || 1440000;
+			var _workers = {};
 
-					RequestDigestService.getRequestDigest(_site)
-						.then(function(digest){
-							window.__REQUESTDIGEST[_site] = digest;
-						});
-				}
+			function _setRefreshInterval(interval) {
+				_interval = interval;
+			}
 
-				//keeps the form digest refreshed across the app
-				function _startInterval(site) {
+			//starts a new interval for this site
+			function _start(site) {
+				if (!_workers[site]) {
+					
+					//get and cache one right now
+					RequestDigestService.get(site);
 
-					_site = site;
-
-					$interval( function() {
-						refresh();
+					//start the interval
+					_workers[site] = $interval(function () {
+						RequestDigestService.get(site);
 					}, _interval);
 				}
-				
-				refresh();
-
-				return {
-					startInterval: _startInterval
-				};
 			}
-		]);
+
+			//stops getting a digest for a site
+			function _stop(site) {
+				if( _workers[site] ) {
+					$interval.cancel(_workers[site]);
+				}
+			}
+
+			return {
+				setRefreshInterval: _setRefreshInterval,
+				start: _start,
+				stop: _stop
+			};
+		}
+	]);
 })(angular);
