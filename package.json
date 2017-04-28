@@ -1,6 +1,6 @@
 {
   "name": "angular-sp-digest",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "An AngularJS module that keeps the Sharepoint 2013 RequestDigest refreshed",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
