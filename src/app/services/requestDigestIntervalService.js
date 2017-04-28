@@ -6,7 +6,7 @@
 		function ($interval, RequestDigestService) {
 
 			// 1440000 is every 24 minutes (the sp default)
-			var _interval = _spFormDigestRefreshInterval || 1440000;
+			var _interval = 1440000;
 			var _workers = {};
 
 			function _setRefreshInterval(interval) {
