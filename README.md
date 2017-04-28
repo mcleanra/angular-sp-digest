@@ -11,37 +11,50 @@ An AngularJS module that keeps the Sharepoint 2013 RequestDigest refreshed
 
 <pre>npm install angular-sp-digest</pre>
 
-Inject the module into your page:
+### Bower
+
+<pre>bower install angular-sp-digest</pre>
+
+## Usage
+
+>Inject the module into your page:
 
 ```html
 <script type="text/javascript" src="../node_modules/angular-sp-digest/dist/angular-sp-digest.min.js"></script>
 ```
 
-Include this module as a dependency in your app:
+>Include this module as a dependency in your app:
 
 ```javascript
 angular.module('myApp', ['angular.sp.digest']);
 ```
 
-Configure and start the RequestDigestIntervalService on app start
+>Start the RequestDigestIntervalService on app start
 
 ```javascript
 angular.module('myApp', ['angular.sp.digest'])
-    .config(function(){
-        window._spFormDigestRefreshInterval = 1440000;
-        window._spPageContextInfo = window._spPageContextInfo || {
-            siteAbsoluteUrl: '/OAA' //this is the site or subsite you want to write to
-        };
 })
 .run(['RequestDigestIntervalService', function(RequestDigestIntervalService){
-    //this refreshes the request digest every 24 minutes, allowing us to post info to SharePoint
-    RequestDigestIntervalService.startInterval();
+
+    //defaults to 24 minutes if you don't set this
+    RequestDigestIntervalService.setInterval(1440000);
+
+    RequestDigestIntervalService.start('/mysite');
+    RequestDigestIntervalService.start('/mysite/mysubsite');
+    RequestDigestIntervalService.start('/my-other-site');
+    RequestDigestIntervalService.start('/');
 }]);
 ```
 
-### Bower
+>To get your digest:
+```javascript
+    RequestDigestCacheService.get('/mysite');
+```
 
-<pre>bower install angular-sp-digest</pre>
+>To get a promise for a fresh digest from the server:
+```javascript
+    RequestDigestService.get('/mysite');
+```
 
 ## Contributing
 
