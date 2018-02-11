@@ -50,15 +50,15 @@
 			//starts a new interval for this site
 			function _start(site) {
 				if (!_workers[site]) {
-					
-					//get and cache one right now
-					RequestDigestService.get(site);
 
 					//start the interval
 					_workers[site] = $interval(function () {
 						RequestDigestService.get(site);
 					}, _interval);
 				}
+
+				//get one right now and return the promise
+				return RequestDigestService.get(site);
 			}
 
 			//stops getting a digest for a site
