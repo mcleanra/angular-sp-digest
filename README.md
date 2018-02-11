@@ -37,12 +37,18 @@ angular.module('myApp', ['angular.sp.digest'])
 .run(['RequestDigestIntervalService', function(RequestDigestIntervalService){
 
     //defaults to 24 minutes if you don't set this
-    RequestDigestIntervalService.setInterval(1440000);
+    RequestDigestIntervalService.setRefreshInterval(1440000);
 
+    //start the interval for some sites we're going to be posting to
     RequestDigestIntervalService.start('/mysite');
     RequestDigestIntervalService.start('/mysite/mysubsite');
     RequestDigestIntervalService.start('/my-other-site');
-    RequestDigestIntervalService.start('/');
+
+    //returns a promise for a digest value
+    RequestDigestIntervalService.start('/')
+        .then(function(digest){
+            console.log('Digest is: ' + digest);
+        });
 }]);
 ```
 
